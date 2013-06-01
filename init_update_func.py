@@ -70,7 +70,7 @@ def func_SS_update_ongoing(G,finish_vm):
     DST_host = G.all_host__dict[DST_num]
     fin_vm_set_num = G.all_VM__dict[finish_vm].set_num
 
-    if fin_set_num==1:
+    if fin_vm_set_num==1:
         SRCobj.GPNum_to_VM__dict[1] -= set([finish_vm])
         DSTobj.GPNum_to_VM__dict[1] -= set([finish_vm])
     else :
