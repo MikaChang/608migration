@@ -1,17 +1,10 @@
-### wahahaha.....test for GitHub
 
 from __future__ import division
 import math
 
-SET__set = set([1,2,3])  # set 1,2,3
-GP__set = set([1,2,3])   # group 1,2,3
-
-import function_Louis_130529 as func
-import init_func_mika_130529_2 as init_func
-
-acceptable_mini_VMM_data_rate = 0.1
-
-SLOTTIME = 1e-6
+import function as func
+import init_update_func as init_func
+import init_parameter
 
 class Global_cl():
     def __init__(self):    
@@ -131,6 +124,7 @@ class VM_cl2():
         self.migration_start_time = 0
         self.migration_over_time = 0
         self.last_migration_event_finish_time = 0  # 1) let event queue check whether the event from event queue is the latest or the expired event. 2) let node update his migration progress upon event. VM can compute the period during two time checkpoint, thus the migration progress can be computed
+        self.last_migration_event_schedule_time = 0  #record the event schedule time
         
         
         
@@ -168,8 +162,13 @@ class VM_cl2():
 
             
 
-
-    def adjust_VM_BW(self, rate):  ## still working !!!
+###for all parallel algo. --> vm rate may change during migraton proceedings
+    def adjust_VM_BW(self, rate):  
+    
+        # update  vm_obj.remain_size according latest_data_rate 
+        last_round_migration_period = self.G.now - self.last_migration_event_schedule_time
+        self.remain_size -= float(last_round_migration_period) * self.latest_data_rate
+    
         assert(self.status == 'sending')
         SRCobj = G.all_host__dict[self.SRCnum]
         DSTobj = G.all_host__dict[self.DSTnum]
@@ -183,16 +182,12 @@ class VM_cl2():
         assert(SRCobj.upRBW >= 0)
         assert(DSTobj.dnRBW >= 0)                
         self.latest_data_rate = rate
-        
-        # update  vm_obj.remain_size according latest_data_rate
-        
-        
+                
         ### schedule Event_cl() into event list
         finish_time = self.compute_finish_time()
         event_obj = Event_cl(type = 'vm finish', finish_time, self.vm_num, info__dict = dict() )
         
-        assert (self.migration_start_time != 0)
-        self.last_migration_event_finish_time = finish_time
+        assert (self.migration_start_time != 0)        
         self.G.E.list.insert(event_obj)
         
 
@@ -230,7 +225,7 @@ class VM_cl2():
         
         
         
-    def assign_VM_BW(self, rate):
+    def assign_VM_BW(self, rate):       
         assert(self.status == 'waiting')
     
         ### assign VM BW into SRC, DST
@@ -257,9 +252,6 @@ class VM_cl2():
         finish_time = self.compute_finish_time()
         event_obj = Event_cl(type = 'vm finish', finish_time, self.vm_num, info__dict = dict() )
         
-        if self.migration_start_time == 0:
-            self.migration_start_time = self.G.now
-        self.last_migration_event_finish_time = finish_time
         self.G.E.list.insert(event_obj)
 
         
@@ -307,8 +299,17 @@ class Event_cl():
     def __init__(self, G, type = 'vm finish', time, vm_num, info__dict = dict() ):
         self.G = G
         self.type = type
-        self.time = time
+        self.time = time        #event finish time
+        self.event_schedule_time = G.now        #time: schedule the event
         self.vm_num = vm_num
         self.info__dict = info__dict
         
+        self.write_time_to_vm_obj()
+        
+    def write_time_to_vm_obj(self):
+        vm_obj = G.all_VM__dict[vm_num]
+        vm_obj.last_migration_event_finish_time = self.time
+        vm_obj.last_migration_event_schedule_time = self.G.now
+        if vm_obj.migration_start_time == 0:
+            vm_obj.migration_start_time = self.G.now        
         
