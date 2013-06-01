@@ -7,10 +7,22 @@ import init_update_func as init_func
 import init_parameter
 
 class Global_cl():
-    def __init__(self):    
+    def __init__(self, input_dict):    
         self.E =  Event_list_cl()  # declare event_list, we store event_obj inside
         
-        self.migration_mode = 'StopNCopy'      # 'PreCopy' or 'StopNCopy'
+        self.input_dict =dict()
+        ### smart input        
+        # self.input_dict =input_dict
+        
+        self.migration_mode = 'StopNCopy'      # 'PreCopy' or 'StopNCopy'        
+        # self.migration_mode = input_dict['migration_mode']      # 'PreCopy' or 'StopNCopy'
+        self.algo_version = 'StrictSequence'
+        # self.algo_version = input_dict['algo_version']
+        
+        
+
+        ### smart input        
+        
         
         self.now = 0            # record  'NOW' time    
         
@@ -74,11 +86,14 @@ class Host_cl():
         ### Louis
         self.upRBW = 0.0   # now residual up BW
         self.dnRBW = 0.0   # now residual down BW
-        self.Initial_upRBW = 0.0   # Initial residual up BW after all VMM complete
-        self.Initial_dnRBW = 0.0   # Initial residual down BW after all VMM complete
+        self.Initial_upRBW = 0.0   # maybe...useless...Initial residual up BW after all VMM complete  
+        self.Initial_dnRBW = 0.0   # maybe...useless...Initial residual down BW after all VMM complete
         self.Final_upRBW = 0.0   # Final residual up BW after all VMM complete
         self.Final_dnRBW = 0.0   # Final residual down BW after all VMM complete
         
+        ### tmp varible --> never use this kind of varible for decision making, only if you set varible value by yourself.
+        self.upRBW_tmp = 0.0   # now residual up BW
+        self.dnRBW_tmp = 0.0   # now residual down BW        
         
         # self.all_VM__dict = dict()  #dict to record VM inside the host
         
@@ -90,6 +105,20 @@ class Host_cl():
         for i in GP__set:
             self.GPNum_to_VM__dict[i] = set()   # key: group number   value: VM_obj set
 
+### take care of final_RBW in LB case!!!
+    def update(self, vm_upSBW, vm_dnSBW, vm_sigma, migr_type):
+        self.upBW += vm_upSBW
+        self.dnBW += vm_dnSBW
+        self.sigma += vm_sigma
+        
+        self.upRBW = self.BWC - self.upBW
+        self.dnRBW = self.BWC - self.dnBW
+        self.Initial_upRBW = self.BWC - self.upBW
+        self.Initial_dnRBW = self.BWC - self.dnBW
+        
+        if migr_type == 'LoadBalancing':
+            self.Final_upRBW = self.BWC - self.upBW
+            self.Final_dnRBW = self.BWC - self.dnBW
 
 
         
@@ -110,6 +139,7 @@ class VM_cl2():
         self.dnSBratio = ori_size/(float(dnSBW))
         
         self.latest_data_rate
+        self.tmp_rate       # tmp rate --> for coding efficiency. no actually power
         
         # self.host_num = host_num  #vm belong to # host (now position)
         self.vm_num = vm_num  #vm number
@@ -162,7 +192,7 @@ class VM_cl2():
 
             
 
-###for all parallel algo. --> vm rate may change during migraton proceedings
+### for all parallel algo. --> vm rate may change during migraton proceedings
     def adjust_VM_BW(self, rate):  
     
         # update  vm_obj.remain_size according latest_data_rate 
@@ -192,6 +222,8 @@ class VM_cl2():
         
 
     def release_BW(self):   # release the BW usage.   SRC release uplink, DST release dnlink
+        assert (self.status == 'sending')
+        
         SRCobj = G.all_host__dict[self.SRCnum]
         DSTobj = G.all_host__dict[self.DSTnum]
         SRCobj.upRBW += self.latest_data_rate
@@ -218,6 +250,7 @@ class VM_cl2():
     
     def migration_over(self):
         self.release_BW(self)
+        # if G.
         init_func.func_SS_update_ongoing(G,self.vm_num)
         ### can change to multiple SS G functions
         func.func_SS(self.G, 1, 'random')
