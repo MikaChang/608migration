@@ -1,16 +1,12 @@
-
-from __future__ import division
-import math
-
-import function as func
-import init_update_func as init_func
 import init_parameter
+
+
 
 class Global_cl():
     def __init__(self, input_dict):    
         self.E =  Event_list_cl()  # declare event_list, we store event_obj inside
         
-        self.input_dict =dict()
+        # self.input_dict =dict()
         ### smart input        
         # self.input_dict =input_dict
         
@@ -250,12 +246,13 @@ class VM_cl2():
     
     def migration_over(self):
         self.release_BW(self)
-        # if G.
-        init_func.func_SS_update_ongoing(G,self.vm_num)
-        ### can change to multiple SS G functions
-        func.func_SS(self.G, 1, 'random')
-        func.func_SS(self.G, 2, 'random')
-        
+        if G.algo_version = 'StrictSequence':
+            init_func.func_SS_update_ongoing(G,self.vm_num)
+            ### can change to multiple SS G functions
+            func.func_SS(self.G, 1, 'random')
+            func.func_SS(self.G, 2, 'random')
+        elif G.algo_version = 'ConCurrent':
+            
         
         
     def assign_VM_BW(self, rate):       
@@ -304,7 +301,7 @@ class VM_cl2():
         dnRate = DSTobj.dnRBW
         minRate = min(upRate, dnRate)
         
-        if minRate == 0 or minRate <= acceptable_mini_VMM_data_rate:
+        if minRate == 0 or minRate <= ACCEPTABLE_MINI_VMM_DATA_RATE:
             return 'fail', 0
         
         if BW_mode == 'full':
