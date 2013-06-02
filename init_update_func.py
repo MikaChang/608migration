@@ -11,9 +11,11 @@ def update_SetNum_GPNum_to_vm_to_host(G):
         if vm_set_num==1:
             G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1].add(vm_obj)
             G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1].add(vm_obj)
-        else:
+        elif vm_set_num==2 or vm_set_num ==3:
             G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2].add(vm_obj)
             G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2].add(vm_obj) 
+        else :
+            assert(0)
         G.SRC_host__set.add(vm_obj.SRCnum)
         G.DST_host__set.add(vm_obj.DSTnum)
 
@@ -73,38 +75,45 @@ def func_SS_update_ongoing(G,finish_vm):
     if fin_vm_set_num==1:
         SRCobj.GPNum_to_VM__dict[1] -= set([finish_vm])
         DSTobj.GPNum_to_VM__dict[1] -= set([finish_vm])
-    else :
+    elif fin_vm_set_num ==2 or fin_vm_set_num ==3:
         SRCobj.GPNum_to_VM__dict[2] -= set([finish_vm])
         DSTobj.GPNum_to_VM__dict[2] -= set([finish_vm])
+    else :
+        assert(0)
 
     G.SetNum_to_VM__dict[fin_vm_set_num] -= set([finish_vm])
     G.SetNum_to_host__dict[fin_vm_set_num] -= set([SRC_num])
     G.SetNum_to_host__dict[fin_vm_set_num] -= set([DST_num])
-
+    
     for vm_num in SRC_host.waiting_vm__set:
         vm_obj = G.all_VM__dict[vm_num]
         prev_vm_set_num = vm_obj.set_num
         now_vm_set_num = vm_obj.get_set_num()          #recalculate to catgorize sets
         if prev_vm_set_num != now_vm_set_num:
             G.SetNum_to_VM__dict[prev_vm_set_num] -= set([vm_num])
-            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_num])
-            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_num])
-            if prev_vm_set_num==1:
-                G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1] -= set([vm_num])
-                G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1] -= set([vm_num])
-            else:
-                G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2] -= set([vm_num])
-                G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2] -= set([vm_num])
-
+            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_obj.SRCnum])
+            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_obj.DSTnum])
+            ###
+            G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1] -= set([vm_obj])
+            G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1] -= set([vm_obj])
+            G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2] -= set([vm_obj])
+            G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2] -= set([vm_obj])
+            ###
             G.SetNum_to_VM__dict[now_vm_set_num].add(vm_num)
-            G.SetNum_to_host__dict[now_vm_set_num].add(vm_obj.SRCnum)
-            G.SetNum_to_host__dict[now_vm_set_num].add(vm_obj.DSTnum)
             if now_vm_set_num==1:
                 G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1].add(vm_obj)
                 G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1].add(vm_obj)
-            else:
+            elif now_vm_set_num==2 or now_vm_set_num==3:
                 G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2].add(vm_obj)
                 G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2].add(vm_obj) 
+            else :
+                assert(0)
+                
+     for vm_num in SRC_host.waiting_vm__set:
+        vm_obj = G.all_VM__dict[vm_num]
+        vm_set_num = vm_obj.set_num
+        G.SetNum_to_host__dict[vm_set_num].add(vm_obj.SRCnum)
+        G.SetNum_to_host__dict[vm_set_num].add(vm_obj.DSTnum)
 
     for vm_num in DST_host.waiting_vm__set:
         vm_obj = G.all_VM__dict[vm_num]
@@ -112,25 +121,30 @@ def func_SS_update_ongoing(G,finish_vm):
         now_vm_set_num = vm_obj.get_set_num()          #recalculate to catgorize sets
         if prev_vm_set_num != now_vm_set_num:
             G.SetNum_to_VM__dict[prev_vm_set_num] -= set([vm_num])
-            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_num])
-            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_num])
-            if prev_vm_set_num==1:
-                G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1] -= set([vm_num])
-                G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1] -= set([vm_num])
-            else:
-                G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2] -= set([vm_num])
-                G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2] -= set([vm_num])
-
+            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_obj.SRCnum])
+            G.SetNum_to_host__dict[prev_vm_set_num] -= set([vm_obj.DSTnum])
+            ###
+            G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1] -= set([vm_obj])
+            G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1] -= set([vm_obj])
+            G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2] -= set([vm_obj])
+            G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2] -= set([vm_obj])
+            ###
             G.SetNum_to_VM__dict[now_vm_set_num].add(vm_num)
-            G.SetNum_to_host__dict[now_vm_set_num].add(vm_obj.SRCnum)
-            G.SetNum_to_host__dict[now_vm_set_num].add(vm_obj.DSTnum)
             if now_vm_set_num==1:
                 G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[1].add(vm_obj)
                 G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[1].add(vm_obj)
-            else:
+            elif now_vm_set_num==2 or now_vm_set_num==3:
                 G.all_host__dict[vm_obj.SRCnum].GPNum_to_VM__dict[2].add(vm_obj)
                 G.all_host__dict[vm_obj.DSTnum].GPNum_to_VM__dict[2].add(vm_obj) 
+            else :
+                assert(0)
     
+        for vm_num in DST_host.waiting_vm__set:
+            vm_obj = G.all_VM__dict[vm_num]
+            vm_set_num = vm_obj.set_num
+            G.SetNum_to_host__dict[vm_set_num].add(vm_obj.SRCnum)
+            G.SetNum_to_host__dict[vm_set_num].add(vm_obj.DSTnum)
+            
     G.GPNum_to_VM__dict[1] = G.SetNum_to_VM__dict[1]  # categorizing GPs by 3 Sets
     G.GPNum_to_VM__dict[2] = G.SetNum_to_VM__dict[2] | G.SetNum_to_VM__dict[3]
     G.GPNum_to_host__dict[1] = G.SetNum_to_host__dict[1]
