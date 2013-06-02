@@ -145,6 +145,7 @@ def snapshot_gen(G, tot_host_num, src_num, migr_type):
     else: # LB case
         migr_gen_LB()
     
+    print'snapshot_gen: src__dict', src__dict
     return result, all_VM__dict, all_host__dict
     
     ###扔進演算法中計算snapshot#2

@@ -65,8 +65,8 @@ def func_SS(G, GPNum, sort_mode):
     else:
         assert(0)
 
-    DST_num__set = G.DST_host__set & GPNum_to_host__dict[GPNum]
-    SRC_num__set = G.SRC_host__set & GPNum_to_host__dict[GPNum]
+    DST_num__set = G.DST_host__set & G.GPNum_to_host__dict[GPNum]
+    SRC_num__set = G.SRC_host__set & G.GPNum_to_host__dict[GPNum]
         
     ### unDominant host set 
     for host_num in eval(unDomi_num__set):

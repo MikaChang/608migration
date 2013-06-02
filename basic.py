@@ -1,5 +1,9 @@
 import init_parameter
 from init_parameter import SET__set, GP__set, SLOTTIME, ACCEPTABLE_MINI_VMM_DATA_RATE
+from init_parameter import *
+from init_update_func import *
+from function import *
+import math
 
 
 class Global_cl():
@@ -63,7 +67,7 @@ class Event_list_cl():
 
         tmpL = sorted(self.list, key=lambda Event_cl: Event_cl.time)
         event_obj = tmpL.pop(0)
-        if event_obj.time != all_VM__dict[event_obj.vm_num].last_migration_event_finish_time:
+        if event_obj.time != self.G.all_VM__dict[event_obj.vm_num].last_migration_event_finish_time:
             return False, None
 
         return True, event_obj
@@ -172,11 +176,11 @@ class VM_cl2():
             assert(0)
         
     def get_set_num(self):     # return the set number for each VMM, e.g. 1 2 3   <== int. only
-        SRChost = all_host__dict[self.SRCnum]
-        DSThost = all_host__dict[self.DSTnum]
+        SRChost = self.G.all_host__dict[self.SRCnum]
+        DSThost = self.G.all_host__dict[self.DSTnum]
         
         SRC_now = SRChost.upRBW
-        if self.migration_mode == 'StopNCopy':
+        if self.G.migration_mode == 'StopNCopy':
             SRC_now += self.upSBW
         SRC_end = SRChost.Final_upRBW
         DST_now = DSThost.dnRBW
@@ -229,17 +233,17 @@ class VM_cl2():
     def release_BW(self):   # release the BW usage.   SRC release uplink, DST release dnlink
         assert (self.status == 'sending')
         
-        SRCobj = G.all_host__dict[self.SRCnum]
-        DSTobj = G.all_host__dict[self.DSTnum]
+        SRCobj = self.G.all_host__dict[self.SRCnum]
+        DSTobj = self.G.all_host__dict[self.DSTnum]
         SRCobj.upRBW += self.latest_data_rate
         DSTobj.dnRBW += self.latest_data_rate
         DSTobj.upRBW -= self.upSBW
         DSTobj.dnRBW -= self.dnSBW
-        if self.migration_mode == 'PreCopy':
+        if self.G.migration_mode == 'PreCopy':
             SRCobj.upRBW += self.upSBW    # PreCopy mode!!!
             SRCobj.dnRBW += self.dnSBW    # PreCopy mode!!!
         else:
-            assert (self.migration_mode == 'StopNCopy')
+            assert (self.G.migration_mode == 'StopNCopy')
         assert(SRCobj.upRBW >= 0)
         assert(DSTobj.dnRBW >= 0)        
         
@@ -254,23 +258,25 @@ class VM_cl2():
 
     
     def migration_over(self):
-        self.release_BW(self)
+        self.release_BW()
         if self.G.algo_version == 'StrictSequence':
-            init_func.func_SS_update_ongoing(self.G,self.vm_num)
+            func_SS_update_ongoing(self.G,self.vm_num)
             ### can change to multiple SS G functions
-            func.func_SS(self.G, 1, 'random')
-            func.func_SS(self.G, 2, 'random')
+            func_SS(self.G, 1, 'random')
+            func_SS(self.G, 2, 'random')
+            
         elif G.algo_version == 'ConCurrent':
             ConCur_py.func_Concurrent(self.G, initFlag = False)
         
         
     def assign_VM_BW(self, rate):       
+        print 'basic.py:  vm_obj.assign_VM_BW  rate=',rate
         assert(self.status == 'waiting')
     
         ### assign VM BW into SRC, DST
-        SRCobj = G.all_host__dict[self.SRCnum]
-        DSTobj = G.all_host__dict[self.DSTnum]
-        if self.migration_mode == 'StopNCopy':
+        SRCobj = self.G.all_host__dict[self.SRCnum]
+        DSTobj = self.G.all_host__dict[self.DSTnum]
+        if self.G.migration_mode == 'StopNCopy':
             SRCobj.upRBW += self.upSBW    # StopNCopy mode!!!
             SRCobj.dnRBW += self.dnSBW    # StopNCopy mode!!!
         else:
@@ -284,28 +290,30 @@ class VM_cl2():
         self.latest_data_rate = rate
         SRCobj.waiting_vm__set -= set([self.vm_num])
         DSTobj.waiting_vm__set -= set([self.vm_num])
-        SRCobj.sending_vm__set += set([self.vm_num])
-        DSTobj.sending_vm__set += set([self.vm_num])
+        SRCobj.sending_vm__set.add(self.vm_num)
+        DSTobj.sending_vm__set.add(self.vm_num)
         
         ### schedule Event_cl() into event list
         finish_time = self.compute_finish_time()
+        tmp_info__dict = dict()
+        tmp_type = 'vm_finish'
         event_obj = Event_cl(self.G, tmp_type, finish_time, self.vm_num, tmp_info__dict)
         
-        self.G.E.list.insert(event_obj)
+        self.G.E.list.append(event_obj)
 
         
     def compute_finish_time(self):
         time = self.remain_size / float(self.latest_data_rate)
         finish_time = int(math.ceil(time / SLOTTIME))
         finish_time *= SLOTTIME
-        finish_time += G.now 
+        finish_time += self.G.now 
         return finish_time
         
     def speed_checking(self, BW_mode, domi_node):    # e.g. BW_mode = 'full', 'partial'   domi_node = 'SRC', 'DST'
-        SRCobj = G.all_host__dict[self.SRCnum]
-        DSTobj = G.all_host__dict[self.DSTnum]
+        SRCobj = self.G.all_host__dict[self.SRCnum]
+        DSTobj = self.G.all_host__dict[self.DSTnum]
         upRate = SRCobj.upRBW
-        if self.migration_mode == 'StopNCopy':
+        if self.G.migration_mode == 'StopNCopy':
             upRate += self.upSBW   # StopNCopy mode!!!
         dnRate = DSTobj.dnRBW
         minRate = min(upRate, dnRate)
@@ -318,7 +326,7 @@ class VM_cl2():
                 assert (minRate == dnRate)
                 mode_result = 'success'
             elif domi_node =='SRC':
-                assert (minRate == upRate)
+                assert minRate == upRate, 'minRate=' + str(minRate) + '  upRate' + str(upRate)
                 mode_result = 'success'
             else:
                 assert(0)
@@ -346,7 +354,7 @@ class Event_cl():
         self.write_time_to_vm_obj()
         
     def write_time_to_vm_obj(self):
-        vm_obj = G.all_VM__dict[vm_num]
+        vm_obj = self.G.all_VM__dict[self.vm_num]
         vm_obj.last_migration_event_finish_time = self.time
         vm_obj.last_migration_event_schedule_time = self.G.now
         if vm_obj.migration_start_time == 0:

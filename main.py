@@ -5,6 +5,9 @@ from snapshot_gen import *
 from init_update_func import *
 from concurrent_case import *
 from result_one_snapshot import *
+import os
+os.system('cls') # on linux / os x
+
 ### build input_dict. May change to "itertools.product" in the later version
 input_dict = dict()    ### very import!!!  key to reset whole simulation
 
@@ -37,27 +40,41 @@ E = G.E                 # event list
 
 # generate VM and hosts, if at least one VM have not DST --> re-run snapshot_gen_func again
 keep_gen = True
+result = False
 while keep_gen:
     # result, vm__dict, host__dict = snapshot_gen(G, input_dict['tot_host_num'], input_dict['src_num'], input_dict['migr_type'])
     result, vm__dict, host__dict = snapshot_gen(G, input_dict['tot_host_num'], input_dict['src_num'], input_dict['migr_type'])
     if result == True:
+        print 'main.py: snapshot_gen\t', result
+        print 'vm_size:', len(vm__dict), 'host_size', len(host__dict)
         break
-
+    elif result == False:
+        print 'main.py: snapshot_gen\t', result
+    else:
+        assert(0)
+        
+assert(result == True)
+G.all_VM__dict = vm__dict
+G.all_host__dict = host__dict
 
 # initialization of vmm transmission
 if input_dict['algo_version'] == 'StrictSequence':
     func_SS_INIT(G)
 elif input_dict['algo_version'] == 'ConCurrent':
     func_Concurrent(G, initFlag = True)
+else:
+    assert(0)
 
-    
+print 'main.py: after initialization, some event are scheduled, event_num =\t', len(E.list)
+assert(len(E.list) > 0)
 # continuous event based...vmm transmission
 while (len(E.list) > 0):
     result, event_obj = E.upcoming_event()
     if result == True:
         G.now = event_obj.time
         vm_num = event_obj.vm_num
-        all_VM__dict[vm_num].migration_over()
+        G.all_VM__dict[vm_num].migration_over()
+        print 'main.py:  time=', G.now
 
 ### add assert to ensure all vm_obj.status == 'completed'
 print 'all events have finished, computing results for the snapshot'
