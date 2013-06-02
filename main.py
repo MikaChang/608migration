@@ -2,14 +2,16 @@
 import init_parameter
 
 
-#### build input_dict
+# build input_dict
 input_dict == dict()    ### very import!!!  key to reset whole simulation
+
 #vm migration mode  --> for mika related code
 input_dict['migration_mode'] = 'StopNCopy'
 input_dict['migration_mode'] = 'PreCopy'
 
 input_dict['algo_version'] = 'StrictSequence'
 input_dict['algo_version'] = 'ConCurrent'
+input_dict['algo_version'] = 'RanSequence'
 
 
 # vm snapshot generate by Consolidation or LoadBalancing  --> for louis related code. --> snapshot_gen.py
@@ -31,13 +33,16 @@ G = Global_cl()     #global data structure
 E = G.E                 # event list
 
 # generate VM and hosts
-snapshot_gen_func.
+G.all_VM__dict, G.all_host__dict = snapshot_gen_func.snapshot_gen(G, input_dict['tot_host_num'], input_dict['src_num'], input_dict['migr_type'])
 
+# initialization of vmm transmission
 if input_dict['algo_version'] == 'StrictSequence':
     init_func.func_SS_INIT(G)
 elif input_dict['algo_version'] == 'ConCurrent':
-    
+    ConCur_py.func_Concurrent(G, initFlag = True)
 
+    
+# continuous event based...vmm transmission
 while (len(E.list) > 0):
     result, event_obj = E.upcoming_event()
     if result == True:
@@ -46,6 +51,7 @@ while (len(E.list) > 0):
         all_VM__dict[vm_num].migration_over()
 
 ### add assert to ensure all vm_obj.status == 'completed'
-
 print 'all events have finished'
-######## StrictSequence algo.
+
+
+# compute 

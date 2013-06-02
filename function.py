@@ -56,7 +56,7 @@ def func_SS(G, GPNum, sort_mode):
         unDomiSide_num__set = 'SRC_num__set'
         DomiSide_num__set = 'DST_num__set'
         DomiMetric='VM_cl2.dnSBratio'
-    elif GPNum == 2 || GPNum == 3:
+    elif GPNum == 2 or GPNum == 3:
         unDomiSide_num='vm_obj.DSTnum'
         DomiSide='SRC'
         unDomiSide_num__set = 'DST_num__set'

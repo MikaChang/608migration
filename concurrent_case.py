@@ -17,7 +17,7 @@ def func_Concurrent(G,initFlag):
 
     for vm_num,vm_obj in G.all_VM__dict.items:        
         bool__dict[vm_num] = -1        
-        if vm_obj.status == waiting || vm_obj.status == sending:
+        if vm_obj.status == waiting or vm_obj.status == sending:
             SRCobj = G.all_host__dict[vm_obj.SRCnum]
             DSTobj = G.all_host__dict[vm_obj.DSTnum]
             

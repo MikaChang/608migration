@@ -246,13 +246,13 @@ class VM_cl2():
     
     def migration_over(self):
         self.release_BW(self)
-        if G.algo_version = 'StrictSequence':
-            init_func.func_SS_update_ongoing(G,self.vm_num)
+        if self.G.algo_version = 'StrictSequence':
+            init_func.func_SS_update_ongoing(self.G,self.vm_num)
             ### can change to multiple SS G functions
             func.func_SS(self.G, 1, 'random')
             func.func_SS(self.G, 2, 'random')
         elif G.algo_version = 'ConCurrent':
-            
+            ConCur_py.func_Concurrent(self.G, initFlag = False)
         
         
     def assign_VM_BW(self, rate):       

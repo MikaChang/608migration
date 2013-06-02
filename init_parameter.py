@@ -2,13 +2,14 @@ from __future__ import division
 import math
 
 # for StrictSequence algo
+import init_update_func as init_func
 import function as func
 
 # for ConCurrent
 import concurrent_case as ConCur_py
 
 
-import init_update_func as init_func
+
 
 
 # for snapshot generation
