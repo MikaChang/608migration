@@ -15,7 +15,7 @@ def func_Concurrent(G,initFlag):
     #need update RemainSize
     ###
 
-    for vm_num,vm_obj in G.all_VM__dict.items:        
+    for vm_num,vm_obj in G.all_VM__dict.items():        
         bool__dict[vm_num] = -1        
         if vm_obj.status == waiting or vm_obj.status == sending:
             SRCobj = G.all_host__dict[vm_obj.SRCnum]
@@ -36,12 +36,12 @@ def func_Concurrent(G,initFlag):
 
 
     while readyVM < totalVM:
-        for vm_num,status in bool__dict.items:
+        for vm_num,status in bool__dict.items():
             if status == 0: 
                 vm_obj = G.all_VM__dict[vm_num]
                 SRCobj = G.all_host__dict[vm_obj.SRCnum]
                 DSTobj = G.all_host__dict[vm_obj.DSTnum]
-                if SRCobj.upRBW_tmp >= bwStep && DSTobj.dnRBW_tmp >= bwStep:
+                if SRCobj.upRBW_tmp >= bwStep & DSTobj.dnRBW_tmp >= bwStep:
                     vm_obj.tmp_rate += bwStep
                     SRCobj.upRBW_tmp -= bwStep
                     DSTobj.dnRBW_tmp -= bwStep
@@ -52,7 +52,7 @@ def func_Concurrent(G,initFlag):
                     bool__List[vm_num] = 1
                     readyVM +=1
                     
-    for vm_num,status in bool__dict.items:
+    for vm_num,status in bool__dict.items():
         if status == 1:
             vm_obj = G.all_VM__dict[vm_num]
             if initFlag == True:

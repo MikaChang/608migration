@@ -1,7 +1,7 @@
 import basic
 
 def update_SetNum_GPNum_to_vm_to_host(G):
-    for vm_num,vm_obj in G.all_VM__dict.items:        # categorizing all_VM into 3 Sets
+    for vm_num,vm_obj in G.all_VM__dict.items():        # categorizing all_VM into 3 Sets
         vm_set_num = vm_obj.get_set_num()
         G.SetNum_to_VM__dict[vm_set_num].add(vm_num)
         G.SetNum_to_host__dict[vm_set_num].add(vm_obj.SRCnum)
@@ -32,7 +32,7 @@ def func_SS_INIT(G):
 
     update_SetNum_GPNum_to_vm_to_host(G)
     
-    DST_GP1 = G.DST_host__set & GPNum_to_host__dict[1]   # find those destination host in Group 1
+    DST_GP1 = G.DST_host__set & G.GPNum_to_host__dict[1]   # find those destination host in Group 1
     for host_num in DST_GP1:
         host_obj = G.all_host__dict[host_num]
         seq_vm_obj__list = sorted(host_obj.GPNum_to_VM__dict[1], key=lambda VM_cl2: VM_cl2.dnSBratio )
@@ -48,7 +48,7 @@ def func_SS_INIT(G):
                 break
 
 
-    SRC_GP2 = G.SRC_host__set & GPNum_to_host__dict[2]    #find those source host in Group 2
+    SRC_GP2 = G.SRC_host__set & G.GPNum_to_host__dict[2]    #find those source host in Group 2
     for host_num in SRC_GP2:
         host_obj = G.all_host__dict[host_num]
         ### mika
@@ -109,7 +109,7 @@ def func_SS_update_ongoing(G,finish_vm):
             else :
                 assert(0)
                 
-     for vm_num in SRC_host.waiting_vm__set:
+    for vm_num in SRC_host.waiting_vm__set:
         vm_obj = G.all_VM__dict[vm_num]
         vm_set_num = vm_obj.set_num
         G.SetNum_to_host__dict[vm_set_num].add(vm_obj.SRCnum)

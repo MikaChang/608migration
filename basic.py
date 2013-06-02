@@ -1,19 +1,25 @@
 import init_parameter
-
+from init_parameter import SET__set, GP__set, SLOTTIME, ACCEPTABLE_MINI_VMM_DATA_RATE
 
 
 class Global_cl():
     def __init__(self, input_dict):    
-        self.E =  Event_list_cl()  # declare event_list, we store event_obj inside
+        self.E =  Event_list_cl(self)  # declare event_list, we store event_obj inside
         
         # self.input_dict =dict()
         ### smart input        
         # self.input_dict =input_dict
         
-        self.migration_mode = 'StopNCopy'      # 'PreCopy' or 'StopNCopy'        
-        # self.migration_mode = input_dict['migration_mode']      # 'PreCopy' or 'StopNCopy'
-        self.algo_version = 'StrictSequence'
-        # self.algo_version = input_dict['algo_version']
+        # self.migration_mode = 'StopNCopy'      # 'PreCopy' or 'StopNCopy'        
+        self.migration_mode = input_dict['migration_mode']      # 'PreCopy' or 'StopNCopy'
+        
+        # self.algo_version = 'StrictSequence'
+        self.algo_version = input_dict['algo_version']
+
+        # self.VMmigr_gen_type = input_dict['VMmigr_gen_type']
+        #**** VM_first: largest VM search DST first.     
+        #**** SRC_first:  smallest SRC --> largest VM search DST first
+        self.VMmigr_gen_type = 'vmFirst'        #'VM_first' or 'SRC_first'.  
         
         
 
@@ -57,7 +63,7 @@ class Event_list_cl():
 
         tmpL = sorted(self.list, key=lambda Event_cl: Event_cl.time)
         event_obj = tmpL.pop(0)
-        if event_obj.time != all_VM__dict[event_obj.vm_num].last_migration_event_finish_time
+        if event_obj.time != all_VM__dict[event_obj.vm_num].last_migration_event_finish_time:
             return False, None
 
         return True, event_obj
@@ -98,6 +104,7 @@ class Host_cl():
         
         self.reg_q__Set = set()   # set() to record the vm_num waiting for migrations with registration
         
+        self.GPNum_to_VM__dict = dict()
         for i in GP__set:
             self.GPNum_to_VM__dict[i] = set()   # key: group number   value: VM_obj set
 
@@ -134,8 +141,8 @@ class VM_cl2():
         self.dnBSratio = float(dnSBW) / ori_size
         self.dnSBratio = ori_size/(float(dnSBW))
         
-        self.latest_data_rate
-        self.tmp_rate       # tmp rate --> for coding efficiency. no actually power
+        self.latest_data_rate = 0.0
+        self.tmp_rate = 0.0       # tmp rate --> for coding efficiency. no actually power
         
         # self.host_num = host_num  #vm belong to # host (now position)
         self.vm_num = vm_num  #vm number
@@ -211,7 +218,9 @@ class VM_cl2():
                 
         ### schedule Event_cl() into event list
         finish_time = self.compute_finish_time()
-        event_obj = Event_cl(type = 'vm finish', finish_time, self.vm_num, info__dict = dict() )
+        tmp_info__dict = dict()
+        tmp_type = 'vm_finish'
+        event_obj = Event_cl(self.G, tmp_type, finish_time, self.vm_num, tmp_info__dict)
         
         assert (self.migration_start_time != 0)        
         self.G.E.list.insert(event_obj)
@@ -246,12 +255,12 @@ class VM_cl2():
     
     def migration_over(self):
         self.release_BW(self)
-        if self.G.algo_version = 'StrictSequence':
+        if self.G.algo_version == 'StrictSequence':
             init_func.func_SS_update_ongoing(self.G,self.vm_num)
             ### can change to multiple SS G functions
             func.func_SS(self.G, 1, 'random')
             func.func_SS(self.G, 2, 'random')
-        elif G.algo_version = 'ConCurrent':
+        elif G.algo_version == 'ConCurrent':
             ConCur_py.func_Concurrent(self.G, initFlag = False)
         
         
@@ -280,7 +289,7 @@ class VM_cl2():
         
         ### schedule Event_cl() into event list
         finish_time = self.compute_finish_time()
-        event_obj = Event_cl(type = 'vm finish', finish_time, self.vm_num, info__dict = dict() )
+        event_obj = Event_cl(self.G, tmp_type, finish_time, self.vm_num, tmp_info__dict)
         
         self.G.E.list.insert(event_obj)
 
@@ -326,7 +335,7 @@ class VM_cl2():
         
 
 class Event_cl():
-    def __init__(self, G, type = 'vm finish', time, vm_num, info__dict = dict() ):
+    def __init__(self, G, type, time, vm_num, info__dict = dict()):
         self.G = G
         self.type = type
         self.time = time        #event finish time

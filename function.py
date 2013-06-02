@@ -62,7 +62,7 @@ def func_SS(G, GPNum, sort_mode):
         unDomiSide_num__set = 'DST_num__set'
         DomiSide_num__set = 'SRC_num__set'
         DomiMetric='VM_cl2.upBSratio'
-    else
+    else:
         assert(0)
 
     DST_num__set = G.DST_host__set & GPNum_to_host__dict[GPNum]
@@ -80,13 +80,13 @@ def func_SS(G, GPNum, sort_mode):
                 tuple__list.append( (vm_obj, miniRate) )
         
         seq_vm_obj__list = []
-        if (sort_mode=='ascending')
+        if (sort_mode=='ascending'):
             seq_vm_obj__list = sorted(tuple__list, key = lambda tup: tup[1])   #from small to large
-        elif (sort_mode == 'descending')
+        elif (sort_mode == 'descending'):
             seq_vm_obj__list = sorted(tuple__list, key = lambda tup: tup[1], reverse = True)   #from large to small
-        elif (sort_mode == 'random')
+        elif (sort_mode == 'random'):
             seq_vm_obj__list = random.sample(tuple__list, len(tuple__list))
-        else
+        else:
             assert (0)
         
         # inv__list = seq_vm_obj__list[::-1]
