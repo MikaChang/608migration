@@ -15,15 +15,11 @@ def func_ran_disjoint_init(G):
     
     for vm_num in disjoint_VM__set:
         vm_obj = G.all_VM__dict[vm_num]
-        if vm_obj.migration_mode == 'StopNCopy':
-            minRate = min(G.all_host__dict[vm_obj.SRCnum].upRBW + vm_obj.upSBW,
-                                    G.all_host__dict[vm_obj.DSTnum].dnRBW)
-        else:
-            minRate = min(G.all_host__dict[vm_obj.SRCnum].upRBW,G.all_host__dict[vm_obj.DSTnum].dnRBW)
-        vm_obj.assign_VM_BW(minRate)
-    
-    tmp_set = set()
-    tmp_set = G.all_VM__dict.keys()
+        result, dataRate = vm_obj.speed_checking('partial',None)
+        vm_obj.assign_VM_BW(dataRate)
+            
+
+    tmp_set = set(G.all_VM__dict.keys())
     tmp_set = tmp_set - G.disjoint_VM__set
     
     for vm_num in tmp_set:
@@ -35,7 +31,7 @@ def func_ran_disjoint_init(G):
             vm_obj.assign_VM_BW(dataRate)
             G.non_disjoint__set.add(vm_num)
             
-    G.waiting__set = G.all_VM__dict.keys()
+    G.waiting__set = set(G.all_VM__dict.keys())
     G.waiting__set = G.waiting__set - G.disjoint_VM__set - G.non_disjoint__set
 
 def func_ran_disjoint_ongoing(G,finish_vm):
