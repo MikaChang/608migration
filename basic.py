@@ -63,16 +63,23 @@ class Event_list_cl():
         
     def upcoming_event(self):
         # if len(list) == 0:
+            # print 'Event_list_cl.upcoming_event() --> no further events'
             # return False, None           
 
         tmpL = sorted(self.list, key=lambda Event_cl: Event_cl.time)
         event_obj = tmpL.pop(0)
         if event_obj.time != self.G.all_VM__dict[event_obj.vm_num].last_migration_event_finish_time:
+            # print 'now time:', self.G.now, 'Event_list_cl.upcoming_event --> skip event'
+            print 'Event_list_cl.upcoming_event --> skip event'
             return False, None
 
         return True, event_obj
         
-    def insert(self, event_obj):
+    def insert_event_obj(self, event_obj):
+        vm_num = event_obj.vm_num
+        event_finish_time = event_obj.time
+        # print 'now time:', self.G.now, 'Event_list_cl.insert_event_obj', 'vm_num', vm_num, 'event_finish_time', event_finish_time
+        print 'Event_list_cl.insert_event_obj', 'vm_num', vm_num, 'event_finish_time', event_finish_time
         self.list.append(event_obj)
         
 
@@ -231,6 +238,7 @@ class VM_cl2():
         
 
     def release_BW(self):   # release the BW usage.   SRC release uplink, DST release dnlink
+        print 'basic.py:  vm_obj.release_BW', 'vm_num', self.vm_num, 'status=',self.status
         assert (self.status == 'sending')
         
         SRCobj = self.G.all_host__dict[self.SRCnum]
@@ -258,6 +266,8 @@ class VM_cl2():
 
     
     def migration_over(self):
+        print 'basic.py  vm_obj.migration_over() vm_num=', self.vm_num
+        
         self.release_BW()
         if self.G.algo_version == 'StrictSequence':
             func_SS_update_ongoing(self.G,self.vm_num)
@@ -270,7 +280,7 @@ class VM_cl2():
         
         
     def assign_VM_BW(self, rate):       
-        print 'basic.py:  vm_obj.assign_VM_BW  rate=',rate
+        print 'basic.py:  vm_obj.assign_VM_BW  rate=',rate, '  vm_num', self.vm_num
         assert(self.status == 'waiting')
     
         ### assign VM BW into SRC, DST
@@ -299,7 +309,7 @@ class VM_cl2():
         tmp_type = 'vm_finish'
         event_obj = Event_cl(self.G, tmp_type, finish_time, self.vm_num, tmp_info__dict)
         
-        self.G.E.list.append(event_obj)
+        self.G.E.insert_event_obj(event_obj)
 
         
     def compute_finish_time(self):
@@ -309,31 +319,47 @@ class VM_cl2():
         finish_time += self.G.now 
         return finish_time
         
+    # ###########
+    # speed_checking() will try to check whether the SRC and DST have any BW for the VM.
+    # the return value includes:   flag, miniRate.
+    # flag = True ==> SRC and DST both have BW for VM
+    # miniRate ==> indicate the min residual BW between SRC and DST    
     def speed_checking(self, BW_mode, domi_node):    # e.g. BW_mode = 'full', 'partial'   domi_node = 'SRC', 'DST'
-        SRCobj = self.G.all_host__dict[self.SRCnum]
-        DSTobj = self.G.all_host__dict[self.DSTnum]
-        upRate = SRCobj.upRBW
-        if self.G.migration_mode == 'StopNCopy':
-            upRate += self.upSBW   # StopNCopy mode!!!
-        dnRate = DSTobj.dnRBW
-        minRate = min(upRate, dnRate)
-        
-        if minRate == 0 or minRate <= ACCEPTABLE_MINI_VMM_DATA_RATE:
-            return 'fail', 0
+        # print 'now time:', self.G.now
+        print 'basic.py:  vm_obj.speed_checking()',  'vm_num=', self.vm_num,'BW_mode=',BW_mode, '  domi_node', domi_node    
         
         if BW_mode == 'full':
+            # on-going vm --> just return fail
+            if self.status != 'waiting':
+                return 'fail', None
+            
+            SRCobj = self.G.all_host__dict[self.SRCnum]
+            DSTobj = self.G.all_host__dict[self.DSTnum]
+            upRate = SRCobj.upRBW
+            if self.G.migration_mode == 'StopNCopy':
+                upRate += self.upSBW   # StopNCopy mode!!!
+            dnRate = DSTobj.dnRBW
+            minRate = min(upRate, dnRate)
+            
+            if minRate == 0 or minRate <= ACCEPTABLE_MINI_VMM_DATA_RATE:
+                print 'basic.py:  vm_obj.speed_checking()  return fail    miniRate=', 0
+                return 'fail', 0
+            
             if domi_node =='DST':
                 assert (minRate == dnRate)
                 mode_result = 'success'
             elif domi_node =='SRC':
-                assert minRate == upRate, 'minRate=' + str(minRate) + '  upRate' + str(upRate)
+                assert (minRate == upRate)
+                # assert minRate == upRate, 'minRate=' + str(minRate) + '  upRate' + str(upRate)
                 mode_result = 'success'
             else:
                 assert(0)
+                
+            print 'basic.py:  vm_obj.speed_checking()  return success    miniRate=', minRate
+            return 'success', minRate        
         else:
+            # maybe I should implement BW_mode = 'partial'
             assert(0)
-
-        return 'success', minRate        
         
 
     

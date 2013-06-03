@@ -58,6 +58,7 @@ G.all_VM__dict = vm__dict
 G.all_host__dict = host__dict
 
 # initialization of vmm transmission
+print '---------->> now time:', 0, 'main.py before all vm schedule initialization'
 if input_dict['algo_version'] == 'StrictSequence':
     func_SS_INIT(G)
 elif input_dict['algo_version'] == 'ConCurrent':
@@ -65,6 +66,7 @@ elif input_dict['algo_version'] == 'ConCurrent':
 else:
     assert(0)
 
+# print '\n\n'
 print 'main.py: after initialization, some event are scheduled, event_num =\t', len(E.list)
 assert(len(E.list) > 0)
 # continuous event based...vmm transmission
@@ -72,9 +74,13 @@ while (len(E.list) > 0):
     result, event_obj = E.upcoming_event()
     if result == True:
         G.now = event_obj.time
+        print '\n\n---------->> now time:', G.now, 'main.py --> activate one valid event. '
+        
         vm_num = event_obj.vm_num
         G.all_VM__dict[vm_num].migration_over()
-        print 'main.py:  time=', G.now
+
+    else:
+        print '---------->> main.py --> skip one obsolete event'
 
 ### add assert to ensure all vm_obj.status == 'completed'
 print 'all events have finished, computing results for the snapshot'

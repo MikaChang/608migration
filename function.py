@@ -50,6 +50,7 @@ def func_SS_G1(G):
                 break
 
 def func_SS(G, GPNum, sort_mode):
+    print 'function.py  func_SS()  GPNum', GPNum, 'sort_mode', sort_mode
     if GPNum == 1:
         unDomiSide_num='vm_obj.SRCnum'
         DomiSide='DST'
@@ -69,13 +70,13 @@ def func_SS(G, GPNum, sort_mode):
     SRC_num__set = G.SRC_host__set & G.GPNum_to_host__dict[GPNum]
         
     ### unDominant host set 
-    for host_num in eval(unDomi_num__set):
+    for host_num in eval(unDomiSide_num__set):
         host_obj = G.all_host__dict[host_num]
         
         tuple__list = []   # store tuple (vm_obj, feasible_rate)
         for vm_num in host_obj.reg_q__Set:
             vm_obj = G.all_VM__dict[vm_num]
-            result, miniRate = vm_obj.speed_checking('full', eval(DomiSide)) #miniRate=dominant side rate
+            result, miniRate = vm_obj.speed_checking('full', DomiSide) #miniRate=dominant side rate
             if result == 'success':
                 tuple__list.append( (vm_obj, miniRate) )
         
@@ -91,20 +92,20 @@ def func_SS(G, GPNum, sort_mode):
         
         # inv__list = seq_vm_obj__list[::-1]
         for vm_obj,  miniRate in seq_vm_obj__list:
-            tmp_result, tmp_miniRate = vm_obj.speed_checking('full', eval(DomiSide))
+            tmp_result, tmp_miniRate = vm_obj.speed_checking('full', DomiSide)
             if tmp_result == 'success':
                 vm_obj.assign_VM_BW(tmp_miniRate)
                 temp_set = set([vm_obj.vm_num]) # if assign, delete from seq__list
                 host_obj.reg_q__Set = host_obj.reg_q__Set - temp_set
 
     ### Dominant host set
-    for host_num in eval(Domi_num__set):
+    for host_num in eval(DomiSide_num__set):
         host_obj = G.all_host__dict[host_num]
         seq_vm_obj__list = sorted(host_obj.GPNum_to_VM__dict[GPNum], key=lambda VM_cl2: eval(DomiMetric))
         
         ### only waiting for the first SRC
         for vm_obj in seq_vm_obj__list:
-            result, miniRate = vm_obj.speed_checking(BW_mode = 'full', domi_node = eval(DomiSide))
+            result, miniRate = vm_obj.speed_checking(BW_mode = 'full', domi_node = DomiSide)
             if result == 'success':
                 vm_obj.assign_VM_BW(miniRate)
                 
