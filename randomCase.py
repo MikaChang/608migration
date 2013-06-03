@@ -40,29 +40,12 @@ def func_ran_disjoint_ongoing(G,finish_vm):
     SRC_host = G.all_host__dict[SRC_num]
     DST_host = G.all_host__dict[DST_num]
     
-    DISJOINT_FLAG = False
-    if finish_vm in G.disjoint_VM__set:
-        DISJOINT_FLAG = True
-    elif finish_vm in G.non_disjoint__set:
-        DISJOINT_FLAG = False
-    else :
-        assert(0)
-    
-    #SRC_relatedVM_disjoint
     SRC_relatedVM_non_disjoint = set([ ])
     SRC_relatedVM_waiting = set([ ])
-    #DST_relatedVM_disjoint
     DST_relatedVM_non_disjoint = set([ ])
     DST_relatedVM_waiting = set([ ])
     
     ### Categorizing
-    if DISJOINT_FLAG == False
-        for vm_num in G.disjoint_VM__set:
-            if G.all_VM__dict[vm_num].SRCnum == SRC_num:
-                SRC_relatedVM_disjoint = vm_num
-            if G.all_VM__dict[vm_num].DSTnum == DST_num:
-                DST_relatedVM_disjoint = vm_num
-    
     for vm_num in G.non_disjoint__set:
         if G.all_VM__dict[vm_num].SRCnum == SRC_num:
             SRC_relatedVM_non_disjoint.add(vm_num)
@@ -79,23 +62,14 @@ def func_ran_disjoint_ongoing(G,finish_vm):
     ### SRC case
     SRC_BW_EXHAUST = False
     
-    if DISJOINT_FLAG == False:
-        vm_obj = G.all_VM__dict[SRC_relatedVM_disjoint]
+    for vm_num in SRC_relatedVM_non_disjoint:
+        vm_obj = G.all_VM__dict[vm_num]
         result, dataRate = vm_obj.speed_checking('partial',None)
         if result == 'success':
             vm_obj.adjust_VM_BW(dataRate)
         elif SRC_host.upRBW <= ACCEPTABLE_MINI_VMM_DATA_RATE:
             SRC_BW_EXHAUST = True
-        
-    if SRC_BW_EXAUST == False:
-        for vm_num in SRC_relatedVM_non_disjoint:
-            vm_obj = G.all_VM__dict[vm_num]
-            result, dataRate = vm_obj.speed_checking('partial',None)
-            if result == 'success':
-                vm_obj.adjust_VM_BW(dataRate)
-            elif SRC_host.upRBW <= ACCEPTABLE_MINI_VMM_DATA_RATE:
-                SRC_BW_EXHAUST = True
-                break
+            break
             
     if SRC_BW_EXAUST == False:
         for vm_num in SRC_relatedVM_waiting:
@@ -109,23 +83,14 @@ def func_ran_disjoint_ongoing(G,finish_vm):
     ### DST case
     DST_BW_EXHAUST = False
     
-    if DISJOINT_FLAG == False:
-        vm_obj = G.all_VM__dict[DST_relatedVM_disjoint]
+    for vm_num in DST_relatedVM_non_disjoint:
+        vm_obj = G.all_VM__dict[vm_num]
         result, dataRate = vm_obj.speed_checking('partial',None)
         if result == 'success':
             vm_obj.adjust_VM_BW(dataRate)
         elif DST_host.dnRBW <= ACCEPTABLE_MINI_VMM_DATA_RATE:
             DST_BW_EXHAUST = True
-    
-    if DST_BW_EXAUST == False:
-        for vm_num in DST_relatedVM_non_disjoint:
-            vm_obj = G.all_VM__dict[vm_num]
-            result, dataRate = vm_obj.speed_checking('partial',None)
-            if result == 'success':
-                vm_obj.adjust_VM_BW(dataRate)
-            elif DST_host.dnRBW <= ACCEPTABLE_MINI_VMM_DATA_RATE:
-                DST_BW_EXHAUST = True
-                break
+            break
             
     if DST_BW_EXAUST == False:
         for vm_num in DST_relatedVM_waiting:
