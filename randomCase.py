@@ -13,12 +13,11 @@ def func_ran_disjoint_init(G):
             disjoint_host__set.add(vm_obj.SRCnum)
             disjoint_host__set.add(vm_obj.DSTnum)
     
-    for vm_num in disjoint_VM__set:
+    for vm_num in G.disjoint_VM__set:
         vm_obj = G.all_VM__dict[vm_num]
         result, dataRate = vm_obj.speed_checking('partial',None)
         vm_obj.assign_VM_BW(dataRate)
             
-
     tmp_set = set(G.all_VM__dict.keys())
     tmp_set = tmp_set - G.disjoint_VM__set
     
@@ -35,3 +34,38 @@ def func_ran_disjoint_init(G):
     G.waiting__set = G.waiting__set - G.disjoint_VM__set - G.non_disjoint__set
 
 def func_ran_disjoint_ongoing(G,finish_vm):
+    SRC_num = G.all_VM__dict[finish_vm].SRCnum
+    DST_num = G.all_VM__dict[finish_vm].DSTnum
+    SRC_host = G.all_host__dict[SRC_num]
+    DST_host = G.all_host__dict[DST_num]
+    
+    G.disjoint_VM__set.discard(finish_vm)
+    G.non_disjoint__set.discard(finish_vm)
+    G.waiting__set.discard(finish_vm)
+    
+    SRC_relatedVM_disjoint  = [ ]
+    SRC_relatedVM_non_disjoint = [ ]
+    SRC_relatedVM_waiting = [ ]
+    DST_relatedVM_disjoint = [ ]
+    DST_relatedVM_non_disjoint = [ ]
+    DST_relatedVM_waiting = [ ]
+    
+    for vm_num in G.disjoint_VM__set:
+        if G.all_VM__dict[vm_num].SRCnum == SRC_num:
+            SRC_relatedVM_disjoint.add(vm_num)
+        if G.all_VM__dict[vm_num].DSTnum == DST_num:
+            DST_relatedVM_disjoint.add(vm_num)
+    
+    for vm_num in G.non_disjoint__set:
+        if G.all_VM__dict[vm_num].SRCnum == SRC_num:
+            SRC_relatedVM_non_disjoint.add(vm_num)
+        if G.all_VM__dict[vm_num].DSTnum == DST_num:
+            DST_relatedVM_non_disjoint.add(vm_num)
+            
+    for vm_num in G.waiting__set:
+        if G.all_VM__dict[vm_num].SRCnum == SRC_num:
+            SRC_relatedVM_waiting.add(vm_num)
+        if G.all_VM__dict[vm_num].DSTnum == DST_num:
+            DST_relatedVM_waiting.add(vm_num)
+            
+    
